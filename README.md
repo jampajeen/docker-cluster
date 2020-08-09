@@ -1,10 +1,10 @@
 # Some cluster solutions with Docker
 
-[MariaDB](mariadb-cluster/README.md)
+[MariaDB](mariadb-cluster/)
 
-[MongoDB](mongo-cluster/README.md)
+[MongoDB](mongo-cluster/)
 
-[Nats](nats-cluster/README.md)
+[Nats](nats-cluster/)
 
-[Redis](redis-cluster/README.md)
+[Redis](redis-cluster/)
 
