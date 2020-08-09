@@ -1,0 +1,53 @@
+version: '3.6'
+
+services:
+  node1:
+    build: ./
+    ports:
+      - "7000:7000"
+      - "17000:17000"
+    restart: always
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf, --port,"7000", --cluster-announce-ip,"${IP}", --cluster-announce-port, "7000", --cluster-announce-bus-port, "17000"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7000", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  node2:
+    build: ./
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    restart: always
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf, --port,"7001", --cluster-announce-ip,"${IP}", --cluster-announce-port, "7001", --cluster-announce-bus-port, "17001"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7001", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  node3:
+    build: ./
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    restart: always
+    entrypoint: [redis-server, /etc/redis/rediscluster.conf, --port,"7002", --cluster-announce-ip,"${IP}", --cluster-announce-port, "7002", --cluster-announce-bus-port, "17002"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7002", "ping"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  redis-cluster-creator:
+    image: redis:6.0.6
+    restart: "no"
+    entrypoint: [/bin/sh,-c,'echo "yes" | redis-cli --cluster create ${IP}:7000 ${IP}:7001 ${IP}:7002 --cluster-replicas 0']
+    depends_on:
+      - node1
+      - node2
+      - node3

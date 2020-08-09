@@ -1,0 +1,76 @@
+version: "3.6"
+
+services: 
+    node1:
+        command: [
+              "--cluster" , "nats://0.0.0.0:6222"
+            , "--cluster_id" , "hwip"
+            , "--clustered"
+            , "--cluster_peers", "node1, node2, node3"
+            , "--cluster_node_id" , "node1"
+            , "--http_port" , "8222"
+            , "--port" , "4222"
+            , "--store" , "FILE"
+            , "--dir" , "/data/msg"
+            , "--cluster_bootstrap" # electing self as leader 
+        ]
+        image: "nats-streaming:0.18.0-alpine"
+        ports:
+          - "4001:4222"
+          - "18222:8222"
+        healthcheck:
+          test: echo $$(wget --server-response http://node1:8222/varz 2>&1 | grep  '200 OK') | grep '200'  || exit 1
+          interval: 20s
+          timeout: 5s
+          retries: 5
+          start_period: 40s
+          
+    node2:
+        command: [
+            "--cluster" , "nats://0.0.0.0:6222"
+          , "--cluster_id" , "hwip"
+          , "--clustered"
+          , "--cluster_peers", "node1, node2, node3"
+          , "--cluster_node_id" , "node2"
+          , "--http_port" , "8222"
+          , "--port" , "4222"
+          , "--store" , "FILE"
+          , "--dir" , "/data/msg"
+          , "--routes" , "nats://node1:5222"
+        ]
+        image: "nats-streaming:0.18.0-alpine"
+        ports:
+          - "4002:4222"
+          - "28222:8222"
+        healthcheck:
+          test: echo $$(wget --server-response http://node2:8222/varz 2>&1 | grep  '200 OK') | grep '200'  || exit 1
+          interval: 20s
+          timeout: 5s
+          retries: 5
+          start_period: 40s
+
+    node3:
+        command: [
+            "--cluster" , "nats://0.0.0.0:6222"
+          , "--cluster_id" , "hwip"
+          , "--clustered"
+          , "--cluster_peers", "node1, node2, node3"
+          , "--cluster_node_id" , "node3"
+          , "--http_port" , "8222"
+          , "--port" , "4222"
+          , "--store" , "FILE"
+          , "--dir" , "/data/msg"
+          , "--routes" , "nats://node1:6222"
+        ]
+        image: "nats-streaming:0.18.0-alpine"
+        ports:
+          - "4003:4222"
+          - "38222:8222"
+        depends_on:
+        - node1
+        healthcheck:
+          test: echo $$(wget --server-response http://node3:8222/varz 2>&1 | grep  '200 OK') | grep '200'  || exit 1
+          interval: 20s
+          timeout: 5s
+          retries: 5
+          start_period: 40s
